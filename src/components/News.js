@@ -1,67 +1,81 @@
-import React, { Component } from 'react'
+import React, {useEffect,useState} from 'react'
 import NewsItem from './NewsItem'
+import Loading from './loading'
+import PropTypes from 'prop-types'
+import InfiniteScroll from "react-infinite-scroll-component";
 
-export class News extends Component {
 
-  constructor(){
-    super()
-    this.state={
-      articles:[],
-      loading:false,
-      page:1
-    }
+const News =(props)=>{
+    const [articles,setArticles]=useState([])
+    const [loading,setLoading]=useState(true)
+    const [page,setPage]=useState(0)
+    const [totalResults,setTotalResults]=useState(0)
+    const [start,setStart]=useState(true);
+    
+   
+
+
+ const capitalizeFirstLetter=(word)=>{
+    return word.charAt(0).toUpperCase()+word.slice(1);
   }
 
- async componentDidMount(){
-      let url=" https://newsapi.org/v2/everything?q=bitcoin&apiKey=098cea60ecfa4aba9a7f22ec7c5a36a2&page=1&pageSize=18";
+  document.title=`${capitalizeFirstLetter(props.category)}-NewsMan`
+
+
+ const fetchMoreData = async () => {
+      start&&props.setProgress(10)
+      let url=`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.API_KEY}&page=${page+1}&pageSize=3`;
+      setPage(page+1);
       let data=await fetch(url);
+      start&&props.setProgress(50)
       let parsedData=await data.json()
-      this.setState({articles: parsedData.articles,totalArticles:parsedData.totalResults}) 
-  }
+      start&&props.setProgress(100)
+      setArticles(articles.concat(parsedData.articles))
+      setTotalResults(parsedData.totalResults)
+      setLoading(false)
+      setStart(false)
+};
 
-  handleNextClick=async()=>{
-      let url=`https://newsapi.org/v2/everything?q=bitcoin&apiKey=098cea60ecfa4aba9a7f22ec7c5a36a2&page=${this.state.page+1}&pageSize=18`;
-      let data=await fetch(url);
-      let parsedData=await data.json()
-      if(parsedData.articles){
-      this.setState({articles: parsedData.articles})
-      this.setState({
-        page:this.state.page+1
-      })
-    }
-  }
-
-  handlePreviousClick=async()=>{
-    let url=`https://newsapi.org/v2/everything?q=bitcoin&apiKey=098cea60ecfa4aba9a7f22ec7c5a36a2&page=${this.state.page-1}&pageSize=18`;
-      let data=await fetch(url);
-      let parsedData=await data.json()
-      this.setState({articles: parsedData.articles})
-      this.setState({
-        page:this.state.page-1,
-        nextDisable:false
-      })
-  }
-  render() {
+useEffect(()=>{
+  fetchMoreData();
+},[])
     return (
+      <>
+      <h1 className="text-center">NewsMan - Top {capitalizeFirstLetter(props.category)} Headlines</h1>
+      
+      {loading && <Loading />}
+      <InfiniteScroll
+      dataLength={articles.length}
+      next={fetchMoreData}
+      hasMore={articles.length !==totalResults}
+      loader={<Loading />}
+    >
       <div className="container">
-      <h1 className="text- center">Top Headlines</h1>
       <div className="row">
-           {this.state.articles.map((ele)=>{
-             return <div className="col-md-4" key={ele.url}>
-             <NewsItem title={ele.title?ele.title.slice(0,45):""}description={ele.description?ele.description.slice(0,88):""}
-             imageUrl={ele.urlToImage} newsUrl={ele.url} />
+           {articles.map((ele,index)=>{
+             return <div className="col-md-4" key={index}>
+             <NewsItem title={ele.title?ele.title.slice(0,45):""} description={ele.description?ele.description.slice(0,88):""}
+             imageUrl={ele.urlToImage} newsUrl={ele.url} author={ele.author} date={ele.publishedAt} source={ele.source.name}/>
              
              </div>
            })}
       
       </div>
-      <div className="container d-flex justify-content-between">
-      <button disabled={this.state.page<=1} type="button" class="btn btn-dark" onClick={this.handlePreviousClick}>Previous</button>
-      <button disabled={this.state.page>=5}  type="button" className="btn btn-dark" onClick={this.handleNextClick}>Next</button>
       </div>
-      </div>
+
+      </InfiniteScroll>
+      </>
     )
   }
+
+News.defaultProps={
+  country:"in",
+  category:"genral"
+}
+
+News.propTypes={
+  country: PropTypes.string,
+  category:PropTypes.string,
 }
 
 export default News
