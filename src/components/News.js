@@ -21,20 +21,29 @@ const News =(props)=>{
 
   document.title=`${capitalizeFirstLetter(props.category)}-NewsMan`
 
-
- const fetchMoreData = async () => {
-      start&&props.setProgress(10)
-      let url=`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.API_KEY}&page=${page+1}&pageSize=5`;
-      setPage(page+1);
-      let data=await fetch(url);
-      start&&props.setProgress(50)
-      let parsedData=await data.json()
-      start&&props.setProgress(100)
-      setArticles(articles.concat(parsedData.articles))
-      setTotalResults(parsedData.totalResults)
-      setLoading(false)
-      setStart(false)
+const fetchMoreData = async () => {
+  start && props.setProgress(10);
+  let url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.API_KEY}&page=${page + 1}&pageSize=5`;
+  setPage(page + 1);
+  try {
+    let data = await fetch(url);
+    start && props.setProgress(50);
+    let parsedData = await data.json();
+    start && props.setProgress(100);
+    if (parsedData.articles) {
+      setArticles(articles.concat(parsedData.articles));
+      setTotalResults(parsedData.totalResults);
+    } else {
+      console.error("No articles found in response:", parsedData);
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+    setStart(false);
+  }
 };
+
 
 useEffect(()=>{
   fetchMoreData();
