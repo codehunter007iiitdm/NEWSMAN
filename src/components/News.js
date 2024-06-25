@@ -52,13 +52,23 @@ useEffect(()=>{
     >
       <div className="container">
       <div className="row">
-           {articles.map((ele,index)=>{
-             return <div className="col-md-4" key={index}>
-             <NewsItem title={ele.title?ele.title.slice(0,45):""} description={ele.description?ele.description.slice(0,88):""}
-             imageUrl={ele.urlToImage} newsUrl={ele.url} author={ele.author} date={ele.publishedAt} source={ele.source.name}/>
-             
-             </div>
-           })}
+          {articles.map((ele, index) => {
+  if (!ele) return null;
+  return (
+    <div className="col-md-4" key={index}>
+      <NewsItem
+        title={ele.title ? ele.title.slice(0, 45) : ""}
+        description={ele.description ? ele.description.slice(0, 88) : ""}
+        imageUrl={ele.urlToImage}
+        newsUrl={ele.url}
+        author={ele.author}
+        date={ele.publishedAt}
+        source={ele.source?.name}
+      />
+    </div>
+  );
+})}
+
       
       </div>
       </div>
