@@ -80,7 +80,7 @@ useEffect(()=>{
 
 News.defaultProps={
   country:"in",
-  category:"genral"
+  category:"general"
 }
 
 News.propTypes={
